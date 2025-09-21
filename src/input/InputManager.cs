@@ -17,6 +17,7 @@ namespace game_mono
         
         // Mouse capture state
         public bool IsMouseCaptured { get; private set; }
+        public bool IsWindowFocused => _game.IsActive;
         private Point _screenCenter;
         private Game _game;
         
@@ -55,7 +56,7 @@ namespace game_mono
             _currentMouseState = Mouse.GetState();
             
             // Calculate mouse delta and handle capture
-            if (IsMouseCaptured)
+            if (IsMouseCaptured && IsWindowFocused)
             {
                 // Calculate delta from the center of the screen
                 MouseDelta = new Vector2(

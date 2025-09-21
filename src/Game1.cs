@@ -69,6 +69,9 @@ public class Game1 : Game
     {
         // Update input manager
         _inputManager.Update();
+
+        // Control mouse visibility based on capture and focus state
+        IsMouseVisible = !_inputManager.IsMouseCaptured || !_inputManager.IsWindowFocused;
         
         // Exit game
         if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || 
