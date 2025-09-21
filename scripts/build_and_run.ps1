@@ -1,2 +1,2 @@
 dotnet build
-dotnet run
+dotnet run 2>&1

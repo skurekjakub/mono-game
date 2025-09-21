@@ -29,6 +29,12 @@ public class GameplayScreen : GameScreen
         _groundPlane = new GroundPlane(40, 2f);
         _uiManager = new UIManager();
 
+        // Initialize input manager and camera
+        _inputManager = new InputManager(Game);
+        int screenWidth = GraphicsDevice.Viewport.Width;
+        int screenHeight = GraphicsDevice.Viewport.Height;
+        _camera = new Camera3D(new Vector3(5, 3, 15), screenWidth, screenHeight);
+
         var instructionsFont = Content.Load<SpriteFont>("InstructionsFont");
         string instructions = "WASD/Arrows: Move | Mouse: Look | Space/Q: Up/Down\n" +
                               "Tab: Toggle Mouse Capture | R: Add Random | C: Clear All";
@@ -48,18 +54,11 @@ public class GameplayScreen : GameScreen
 
     public override void Update(GameTime gameTime)
     {
-        if (_inputManager == null)
-        {
-            _inputManager = new InputManager(Game);
-            int screenWidth = GraphicsDevice.Viewport.Width;
-            int screenHeight = GraphicsDevice.Viewport.Height;
-            _camera = new Camera3D(new Vector3(5, 3, 15), screenWidth, screenHeight);
-        }
-
         _inputManager.Update();
         Game.IsMouseVisible = !_inputManager.IsMouseCaptured || !_inputManager.IsWindowFocused;
 
-        if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed || _inputManager.IsKeyDown(Keys.Escape))
+        // Remove ESC handling - now managed by ScreenManager
+        if (GamePad.GetState(PlayerIndex.One).Buttons.Back == ButtonState.Pressed)
             Game.Exit();
 
         _camera.Update(gameTime, _inputManager);
@@ -72,7 +71,7 @@ public class GameplayScreen : GameScreen
         _gameObjectManager.Update(gameTime);
 
         _instructionsText.Text = $"WASD/Arrows: Move | Mouse: Look | Space/Q: Up/Down\n" +
-                                 $"Tab: Toggle Mouse Capture | R: Add Random | C: Clear All\n" +
+                                 $"Tab: Toggle Mouse Capture | R: Add Random | C: Clear All | ESC: Menu\n" +
                                  $"Objects: {_gameObjectManager.GameObjects.Count} | Camera Pos: {_camera.Position:F1}";
         _uiManager.Update(gameTime);
     }
