@@ -54,16 +54,17 @@ namespace game_mono
             _currentKeyboardState = Keyboard.GetState();
             _currentMouseState = Mouse.GetState();
             
-            // Calculate mouse delta as movement between frames
+            // Calculate mouse delta and handle capture
             if (IsMouseCaptured)
             {
+                // Calculate delta from the center of the screen
                 MouseDelta = new Vector2(
-                    _currentMouseState.X - _previousMouseState.X,
-                    _currentMouseState.Y - _previousMouseState.Y
+                    _currentMouseState.X - _screenCenter.X,
+                    _currentMouseState.Y - _screenCenter.Y
                 );
                 
-                // Allow unrestricted mouse movement - no position reset needed
-                // The delta represents the actual mouse movement between frames
+                // Reset mouse to the center of the screen for continuous movement
+                Mouse.SetPosition(_screenCenter.X, _screenCenter.Y);
             }
             else
             {
@@ -100,6 +101,37 @@ namespace game_mono
         {
             return !_currentKeyboardState.IsKeyDown(key) && _previousKeyboardState.IsKeyDown(key);
         }
+        
+        /// <summary>
+        /// Enables or disables mouse capture mode
+        /// </summary>
+        public void SetMouseCapture(bool isCaptured)
+        {
+            IsMouseCaptured = isCaptured;
+            _game.IsMouseVisible = !isCaptured;
+            
+            if (IsMouseCaptured)
+            {
+                // When capturing, center the mouse immediately
+                Mouse.SetPosition(_screenCenter.X, _screenCenter.Y);
+                
+                // Reset previous state to avoid a large jump on the first frame
+                _previousMouseState = Mouse.GetState();
+            }
+        }
+        
+        /// <summary>
+        /// Updates the screen center. Call when window size changes.
+        /// </summary>
+        public void UpdateScreenCenter()
+        {
+            _screenCenter = new Point(
+                _game.GraphicsDevice.Viewport.Width / 2,
+                _game.GraphicsDevice.Viewport.Height / 2
+            );
+        }
+
+        // --- Mouse Button Handling ---
         
         /// <summary>
         /// Checks if a mouse button is currently pressed
@@ -153,31 +185,6 @@ namespace game_mono
         /// Gets the mouse scroll wheel delta
         /// </summary>
         public int ScrollWheelDelta => _currentMouseState.ScrollWheelValue - _previousMouseState.ScrollWheelValue;
-        
-        /// <summary>
-        /// Sets mouse capture state for center-based camera controls
-        /// </summary>
-        public void SetMouseCapture(bool capture)
-        {
-            IsMouseCaptured = capture;
-            _game.IsMouseVisible = !capture;
-            
-            if (capture)
-            {
-                // Don't reset mouse position - let it start from wherever it currently is
-                // The camera will interpret position relative to center
-                MouseDelta = Vector2.Zero;
-            }
-        }
-        
-        /// <summary>
-        /// Updates the screen center point for mouse capture
-        /// </summary>
-        public void UpdateScreenCenter()
-        {
-            var bounds = _game.GraphicsDevice.PresentationParameters;
-            _screenCenter = new Point(bounds.BackBufferWidth / 2, bounds.BackBufferHeight / 2);
-        }
         
         /// <summary>
         /// Gets movement input as a Vector2 (for 2D movement like strafing)

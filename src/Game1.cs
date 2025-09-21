@@ -28,7 +28,6 @@ public class Game1 : Game
     {
         _graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
-        IsMouseVisible = false; // Hidden for FPS camera controls
         
         // Set a reasonable window size
         _graphics.PreferredBackBufferWidth = 1024;
