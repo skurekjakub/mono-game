@@ -1,7 +1,8 @@
 using game_mono.interfaces;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
-namespace game_mono;
+namespace game_mono.components;
 
 public class MeshRenderer : Component, interfaces.IDrawable
 {
@@ -12,6 +13,11 @@ public class MeshRenderer : Component, interfaces.IDrawable
     {
         Mesh = mesh;
         Color = color;
+    }
+
+    public void Draw(GraphicsDevice graphicsDevice, Matrix view, Matrix projection)
+    {
+        // This component uses PrimitiveRenderer, so this method is not implemented
     }
 
     public void Draw(PrimitiveRenderer renderer)

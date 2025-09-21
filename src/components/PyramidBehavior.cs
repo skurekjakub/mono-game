@@ -1,7 +1,7 @@
 using game_mono.interfaces;
 using Microsoft.Xna.Framework;
 
-namespace game_mono;
+namespace game_mono.components;
 
 public class PyramidBehavior : Component, IUpdatable
 {

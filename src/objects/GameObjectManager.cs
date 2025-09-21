@@ -1,8 +1,10 @@
+using game_mono.components;
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace game_mono
+namespace game_mono.objects
 {
     /// <summary>
     /// Manages the lifecycle of all game objects in the scene.
@@ -65,17 +67,23 @@ namespace game_mono
             _gameObjects.RemoveAll(go => go.IsDestroyed);
         }
 
-        /// <summary>
-        /// Draws all managed game objects using the provided renderer
-        /// </summary>
-        public void Draw(PrimitiveRenderer renderer)
+        public void DrawPrimitives(PrimitiveRenderer renderer)
         {
             foreach (var gameObject in _gameObjects)
             {
-                if (!gameObject.IsDestroyed)
-                {
-                    gameObject.Draw(renderer);
-                }
+                if (gameObject.IsDestroyed) continue;
+                var rendererComponent = gameObject.GetComponent<MeshRenderer>();
+                rendererComponent?.Draw(renderer);
+            }
+        }
+
+        public void DrawModels(GraphicsDevice graphicsDevice, Matrix view, Matrix projection)
+        {
+            foreach (var gameObject in _gameObjects)
+            {
+                if (gameObject.IsDestroyed) continue;
+                var modelComponent = gameObject.GetComponent<ModelComponent>();
+                modelComponent?.Draw(graphicsDevice, view, projection);
             }
         }
     }

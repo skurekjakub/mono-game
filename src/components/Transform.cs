@@ -1,6 +1,6 @@
 using Microsoft.Xna.Framework;
 
-namespace game_mono;
+namespace game_mono.components;
 
 public class Transform : Component
 {

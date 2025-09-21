@@ -1,4 +1,6 @@
-namespace game_mono;
+using game_mono.objects;
+
+namespace game_mono.components;
 
 public abstract class Component
 {

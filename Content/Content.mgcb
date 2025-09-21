@@ -18,3 +18,9 @@
 /processor:FontDescriptionProcessor
 /build:InstructionsFont.spritefont
 
+#begin models/pyramid.obj
+/importer:FbxImporter
+/processor:ModelProcessor
+/processorParam:GenerateNormals=True
+/build:models/pyramid.obj
+
