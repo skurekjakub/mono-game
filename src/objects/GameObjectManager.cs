@@ -79,6 +79,12 @@ namespace game_mono.objects
 
         public void DrawModels(GraphicsDevice graphicsDevice, Matrix view, Matrix projection)
         {
+            // Reset render states to their defaults before drawing models
+            graphicsDevice.BlendState = BlendState.Opaque;
+            graphicsDevice.DepthStencilState = DepthStencilState.Default;
+            graphicsDevice.SamplerStates[0] = SamplerState.LinearWrap;
+            graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+
             foreach (var gameObject in _gameObjects)
             {
                 if (gameObject.IsDestroyed) continue;

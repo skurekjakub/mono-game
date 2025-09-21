@@ -22,5 +22,6 @@
 /importer:FbxImporter
 /processor:ModelProcessor
 /processorParam:GenerateNormals=True
+/processorParam:NormalSmoothingAngle=0
 /build:models/pyramid.obj
 

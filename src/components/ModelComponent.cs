@@ -7,6 +7,7 @@ public class ModelComponent : Component, interfaces.IDrawable
 {
     public Model Model { get; }
     public Color Color { get; set; }
+    private bool _debugLogged = false;
 
     public ModelComponent(Model model, Color color)
     {
@@ -25,6 +26,21 @@ public class ModelComponent : Component, interfaces.IDrawable
         Matrix[] boneTransforms = new Matrix[Model.Bones.Count];
         Model.CopyAbsoluteBoneTransformsTo(boneTransforms);
 
+        // Debug: Log model information (only once)
+        if (!_debugLogged)
+        {
+            System.Console.WriteLine($"Model has {Model.Meshes.Count} meshes");
+            foreach (var mesh in Model.Meshes)
+            {
+                System.Console.WriteLine($"Mesh: {mesh.Name}, Effects: {mesh.Effects.Count}");
+                foreach (var effect in mesh.Effects)
+                {
+                    System.Console.WriteLine($"Effect type: {effect.GetType().Name}");
+                }
+            }
+            _debugLogged = true;
+        }
+
         // Iterate through each mesh in the model
         foreach (var mesh in Model.Meshes)
         {
@@ -38,6 +54,7 @@ public class ModelComponent : Component, interfaces.IDrawable
 
                 // Set material color
                 effect.DiffuseColor = Color.ToVector3();
+                effect.VertexColorEnabled = false;
                 
                 // Set up a simple lighting rig
                 effect.AmbientLightColor = new Vector3(0.2f, 0.2f, 0.2f);
