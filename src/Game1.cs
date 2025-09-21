@@ -10,7 +10,6 @@ public class Game1 : Game
 {
     private GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
-    private SpriteFont _instructionsFont;
     
     // Our 3D systems
     private PrimitiveRenderer _primitiveRenderer;
@@ -145,7 +144,7 @@ public class Game1 : Game
 
         base.Draw(gameTime);
     }
-    
+
     private GameObject CreatePyramidGameObject(Vector3 position, float baseSize, float height, Color color)
     {
         var gameObject = new GameObject();
@@ -157,31 +156,6 @@ public class Game1 : Game
 
         _gameObjectManager.AddGameObject(gameObject);
         return gameObject;
-    }
-
-    private void CreateRandomPyramidGameObject()
-    {
-        var position = new Vector3(
-            (float)(_random.NextDouble() - 0.5) * 40,
-            0,
-            (float)(_random.NextDouble() - 0.5) * 40);
-        
-        var baseSize = (float)(_random.NextDouble() * 1.5 + 0.5);
-        var height = (float)(_random.NextDouble() * 2.0 + 1.0);
-        var color = new Color(
-            _random.Next(50, 255),
-            _random.Next(50, 255),
-            _random.Next(50, 255));
-
-        var pyramid = CreatePyramidGameObject(position, baseSize, height, color);
-        var behavior = pyramid.GetComponent<PyramidBehavior>();
-        if (behavior != null)
-        {
-            behavior.Velocity = new Vector3(
-                (float)(_random.NextDouble() - 0.5) * 2f, 0, (float)(_random.NextDouble() - 0.5) * 2f);
-            behavior.RotationSpeed = new Vector3(
-                0, (float)(_random.NextDouble() - 0.5) * 1f, 0);
-        }
     }
 
     private void CreateDemoPyramids()
