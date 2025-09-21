@@ -116,39 +116,6 @@ namespace game_mono
         }
         
         /// <summary>
-        /// Adds a pyramid to the current batch
-        /// </summary>
-        public void AddPyramid(Pyramid pyramid)
-        {
-            int pyramidVertexCount = pyramid.WorldVertices.Length;
-            int pyramidIndexCount = pyramid.Indices.Length;
-            
-            if (_vertexCount + pyramidVertexCount > MaxVertices || _indexCount + pyramidIndexCount > MaxIndices)
-            {
-                // Buffer is full, flush current batch and start new one
-                Flush();
-                Reset();
-            }
-            
-            // Add vertices
-            for (int i = 0; i < pyramidVertexCount; i++)
-            {
-                _vertices[_vertexCount + i] = pyramid.WorldVertices[i];
-            }
-            
-            // Add indices (offset by current vertex count)
-            short baseIndex = (short)_vertexCount;
-            for (int i = 0; i < pyramidIndexCount; i++)
-            {
-                _indices[_indexCount + i] = (short)(baseIndex + pyramid.Indices[i]);
-            }
-            
-            _vertexCount += pyramidVertexCount;
-            _indexCount += pyramidIndexCount;
-            _primitiveCount += pyramid.TriangleCount;
-        }
-        
-        /// <summary>
         /// Adds a line to the current batch by creating a thin triangle
         /// </summary>
         public void AddLine(Vector3 start, Vector3 end, Color color, float thickness = 0.01f)
@@ -224,19 +191,46 @@ namespace game_mono
             _primitiveCount += 1;
         }
         
-        /// <summary>
-        /// Adds a triangle with specified vertices and color (calculates normal automatically)
-        /// </summary>
-        public void AddTriangle(Vector3 v1, Vector3 v2, Vector3 v3, Color color)
+        public void DrawMesh(Mesh mesh, Matrix worldMatrix, Color color)
         {
-            // Calculate face normal
-            Vector3 edge1 = v2 - v1;
-            Vector3 edge2 = v3 - v1;
-            Vector3 normal = Vector3.Normalize(Vector3.Cross(edge1, edge2));
-            
-            AddTriangle(v1, v2, v3, normal, normal, normal, color);
+            // Flush any existing batched primitives before drawing a unique mesh.
+            Flush();
+
+            _graphicsDevice.SetVertexBuffer(null);
+            _graphicsDevice.Indices = null;
+
+            // Set the world matrix for this specific object
+            _basicEffect.World = worldMatrix;
+            _basicEffect.DiffuseColor = color.ToVector3();
+
+            // Set the buffers from the mesh
+            var vertexBuffer = new VertexBuffer(_graphicsDevice, typeof(VertexPositionNormalColor), mesh.Vertices.Length, BufferUsage.WriteOnly);
+            vertexBuffer.SetData(mesh.Vertices);
+            var indexBuffer = new IndexBuffer(_graphicsDevice, typeof(short), mesh.Indices.Length, BufferUsage.WriteOnly);
+            indexBuffer.SetData(mesh.Indices);
+
+            _graphicsDevice.SetVertexBuffer(vertexBuffer);
+            _graphicsDevice.Indices = indexBuffer;
+
+            // Apply the effect and draw the mesh
+            foreach (EffectPass pass in _basicEffect.CurrentTechnique.Passes)
+            {
+                pass.Apply();
+                _graphicsDevice.DrawIndexedPrimitives(
+                    PrimitiveType.TriangleList,
+                    0,
+                    0,
+                    mesh.Indices.Length / 3);
+            }
+
+            // Reset the world matrix to identity for subsequent batched primitives
+            _basicEffect.World = Matrix.Identity;
+            _basicEffect.DiffuseColor = Vector3.One; // Reset to white
+
+            vertexBuffer.Dispose();
+            indexBuffer.Dispose();
         }
-        
+
         /// <summary>
         /// Ends the current batch and renders all primitives
         /// </summary>
@@ -287,25 +281,6 @@ namespace game_mono
             _vertexCount = 0;
             _indexCount = 0;
             _primitiveCount = 0;
-        }
-        
-        /// <summary>
-        /// Creates perspective projection matrix for 3D rendering
-        /// </summary>
-        public static Matrix CreatePerspectiveProjection(float fieldOfView, float aspectRatio, float nearPlane, float farPlane)
-        {
-            return Matrix.CreatePerspectiveFieldOfView(fieldOfView, aspectRatio, nearPlane, farPlane);
-        }
-        
-        /// <summary>
-        /// Creates orthographic projection matrix for 2D rendering (legacy support)
-        /// </summary>
-        public static Matrix CreateOrthographicProjection(int width, int height)
-        {
-            // Use CreateOrthographicOffCenter to match world coordinates with screen pixels.
-            // left = 0, right = width, bottom = height, top = 0
-            // A z-depth of -1 to 1 is a safe range for 2D objects drawn at z=0.
-            return Matrix.CreateOrthographicOffCenter(0, width, height, 0, -1f, 1f);
         }
         
         public void Dispose()

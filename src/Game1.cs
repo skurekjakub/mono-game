@@ -78,116 +78,127 @@ public class Game1 : Game
         // Update camera with input
         _camera.Update(gameTime, _inputManager);
         
-        // Add pyramid with mouse click (world raycast from camera)
+        // Add pyramid with mouse click
         if (_inputManager.IsMouseButtonPressed(MouseButton.Left))
         {
-            // Simple method: place pyramid in front of camera
-            Vector3 spawnPosition = _camera.Position + _camera.Forward * 5f;
-            spawnPosition.Y = 0; // Keep on ground level
-            
-            var newPyramid = _gameObjectManager.CreatePyramid(spawnPosition, 1f, 2f, Color.Red);
-            newPyramid.SetRotationSpeed(new Vector3(0, 2f, 0)); // Spin around Y-axis
+            Vector3 spawnPosition = _camera.Position + _camera.Forward * 10f;
+            spawnPosition.Y = 0;
+            var pyramid = CreatePyramidGameObject(spawnPosition, 1f, 2f, Color.Red);
+            var behavior = pyramid.GetComponent<PyramidBehavior>();
+            if (behavior != null)
+            {
+                behavior.RotationSpeed = new Vector3(0, 2f, 0);
+            }
         }
         
         // Clear all pyramids with C key
         if (_inputManager.IsKeyPressed(Keys.C))
         {
-            _gameObjectManager.ClearAllPyramids();
+            _gameObjectManager.ClearAll();
             CreateDemoPyramids(); // Recreate demo pyramids
         }
         
         // Spawn random pyramid with R key
         if (_inputManager.IsKeyPressed(Keys.R))
         {
-            var randomPyramid = _gameObjectManager.CreateRandomPyramid(
-                Vector3.Zero, 20f, _random);
+            CreateRandomPyramidGameObject();
         }
         
         // Update all game objects
         _gameObjectManager.Update(gameTime);
-        
-        // Enable world wrapping
-        _gameObjectManager.SetWorldWrapping(new Vector3(50, 20, 50), true);
 
         base.Update(gameTime);
     }
 
     protected override void Draw(GameTime gameTime)
     {
-        GraphicsDevice.Clear(Color.CornflowerBlue);
+        GraphicsDevice.Clear(Color.CornflowerBlue); // Darker blue
 
-        // Render 3D scene
-        if (_gameObjectManager.PyramidCount > 0 || _groundPlane != null)
-        {
-            // Set up 3D rendering matrices
-            var projection = PrimitiveRenderer.CreatePerspectiveProjection(
-                _camera.FieldOfView, 
-                (float)_screenWidth / _screenHeight, 
-                _camera.NearPlane, 
-                _camera.FarPlane);
-            
-            _primitiveRenderer.SetMatrices(projection, _camera.ViewMatrix);
+        // Set up 3D rendering matrices
+        var projection = _camera.ProjectionMatrix;
+        _primitiveRenderer.SetMatrices(projection, _camera.ViewMatrix);
 
-            // Begin primitive rendering
-            _primitiveRenderer.Begin();
-            
-            // Draw ground plane first for depth ordering
-            _groundPlane.Draw(_primitiveRenderer);
-            
-            // Draw all pyramids
-            _gameObjectManager.Draw(_primitiveRenderer);
-            
-            // End primitive rendering (this actually draws everything)
-            _primitiveRenderer.End();
-        }
+        // Begin primitive rendering
+        _primitiveRenderer.Begin();
+        
+        // Draw ground plane first
+        _groundPlane.Draw(_primitiveRenderer);
+        
+        // Draw all game objects
+        _gameObjectManager.Draw(_primitiveRenderer);
+        
+        // End primitive rendering
+        _primitiveRenderer.End();
 
         // Draw UI overlay with instructions
         _spriteBatch.Begin();
         
-        string instructions = $"WASD: Move | Mouse: Free Look (Unlimited) | Space/Q: Up | E: Down | Tab: Toggle Mouse\n" +
-                             $"Left Click: Add Pyramid | R: Random Pyramid | C: Clear\n" +
-                             $"Scroll: Adjust Mouse Sensitivity ({_camera.MouseSensitivity:F4})\n" +
-                             $"Pyramids: {_gameObjectManager.PyramidCount} | Pos: {_camera.Position:F1}";
+        string instructions = $"WASD/Arrows: Move | Mouse: Look | Space/Q: Up/Down\n" +
+                             $"Tab: Toggle Mouse Capture | R: Add Random | C: Clear All\n" +
+                             $"Objects: {_gameObjectManager.GameObjects.Count} | Camera Pos: {_camera.Position:F1}";
         
-        // Simple text rendering without needing fonts (using default system font if available)
-        // Note: This is a basic approach - in a real game you'd load a SpriteFont
+        // In a real game, you would use a SpriteFont here.
+        // For simplicity, we are not rendering text for now.
         
         _spriteBatch.End();
 
         base.Draw(gameTime);
     }
     
-    /// <summary>
-    /// Creates some demo pyramids for initial display
-    /// </summary>
+    private GameObject CreatePyramidGameObject(Vector3 position, float baseSize, float height, Color color)
+    {
+        var gameObject = new GameObject();
+        gameObject.Transform.Position = position;
+
+        var mesh = MeshFactory.CreatePyramid(baseSize, height, color);
+        gameObject.AddComponent(new MeshRenderer(mesh, color));
+        gameObject.AddComponent(new PyramidBehavior());
+
+        _gameObjectManager.AddGameObject(gameObject);
+        return gameObject;
+    }
+
+    private void CreateRandomPyramidGameObject()
+    {
+        var position = new Vector3(
+            (float)(_random.NextDouble() - 0.5) * 40,
+            0,
+            (float)(_random.NextDouble() - 0.5) * 40);
+        
+        var baseSize = (float)(_random.NextDouble() * 1.5 + 0.5);
+        var height = (float)(_random.NextDouble() * 2.0 + 1.0);
+        var color = new Color(
+            _random.Next(50, 255),
+            _random.Next(50, 255),
+            _random.Next(50, 255));
+
+        var pyramid = CreatePyramidGameObject(position, baseSize, height, color);
+        var behavior = pyramid.GetComponent<PyramidBehavior>();
+        if (behavior != null)
+        {
+            behavior.Velocity = new Vector3(
+                (float)(_random.NextDouble() - 0.5) * 2f, 0, (float)(_random.NextDouble() - 0.5) * 2f);
+            behavior.RotationSpeed = new Vector3(
+                0, (float)(_random.NextDouble() - 0.5) * 1f, 0);
+        }
+    }
+
     private void CreateDemoPyramids()
     {
-        // Create a large white pyramid at the origin
-        _gameObjectManager.CreatePyramid(
-            new Vector3(0, 0, 0), 
-            2f, 3f, 
-            Color.White);
-        
-        // Add a bright red pyramid for contrast
-        var redPyramid = _gameObjectManager.CreatePyramid(
-            new Vector3(-5, 0, -3), 
-            1.5f, 2.5f, 
-            Color.Red);
-        redPyramid.SetRotationSpeed(new Vector3(0, 1f, 0)); // Slow rotation
-        
-        // Add a bright green pyramid
-        var greenPyramid = _gameObjectManager.CreatePyramid(
-            new Vector3(4, 0, -2), 
-            1.2f, 2f, 
-            Color.Lime);
-        greenPyramid.SetRotationSpeed(new Vector3(0, -0.5f, 0)); // Opposite rotation
-        
-        // Add a blue pyramid higher up
-        var bluePyramid = _gameObjectManager.CreatePyramid(
-            new Vector3(0, 3, -8), 
-            1f, 1.5f, 
-            Color.Blue);
-        bluePyramid.SetVelocity(new Vector3(1f, 0, 0)); // Moving
+        // Large white pyramid at origin
+        CreatePyramidGameObject(new Vector3(0, 0, 0), 2f, 3f, Color.White);
+
+        // Red spinning pyramid
+        var redPyramid = CreatePyramidGameObject(new Vector3(-5, 0, -3), 1.5f, 2.5f, Color.Red);
+        redPyramid.GetComponent<PyramidBehavior>().RotationSpeed = new Vector3(0, 1f, 0);
+
+        // Green spinning pyramid
+        var greenPyramid = CreatePyramidGameObject(new Vector3(4, 0, -2), 1.2f, 2f, Color.Lime);
+        greenPyramid.GetComponent<PyramidBehavior>().RotationSpeed = new Vector3(0, -0.5f, 0);
+
+        // Blue moving pyramid
+        var bluePyramid = CreatePyramidGameObject(new Vector3(0, 0, -8), 1f, 1.5f, Color.Blue);
+        bluePyramid.GetComponent<PyramidBehavior>().Velocity = new Vector3(1f, 0, 0);
     }
     
     protected override void UnloadContent()
