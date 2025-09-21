@@ -2,6 +2,7 @@
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 using System;
+using game_mono.ui;
 
 namespace game_mono;
 
@@ -17,6 +18,8 @@ public class Game1 : Game
     private Camera3D _camera;
     private InputManager _inputManager;
     private GroundPlane _groundPlane;
+    private UIManager _uiManager;
+    private UIText _instructionsText;
     
     // Random number generator for demo purposes
     private Random _random;
@@ -46,6 +49,9 @@ public class Game1 : Game
         // Initialize input manager
         _inputManager = new InputManager(this);
         
+        // Initialize UI Manager
+        _uiManager = new UIManager();
+
         // Initialize 3D camera at a good starting position
         Vector3 startPosition = new Vector3(5, 3, 15); // Better overview position
         _camera = new Camera3D(startPosition, _screenWidth, _screenHeight);
@@ -56,7 +62,13 @@ public class Game1 : Game
     protected override void LoadContent()
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
-        _instructionsFont = Content.Load<SpriteFont>("InstructionsFont");
+        var instructionsFont = Content.Load<SpriteFont>("InstructionsFont");
+
+        // Set up UI
+        string instructions = "WASD/Arrows: Move | Mouse: Look | Space/Q: Up/Down\n" +
+                              "Tab: Toggle Mouse Capture | R: Add Random | C: Clear All";
+        _instructionsText = new UIText(instructions, instructionsFont, new Vector2(10, 10), Color.White);
+        _uiManager.AddElement(_instructionsText);
 
         // Initialize our 3D systems
         _primitiveRenderer = new PrimitiveRenderer(GraphicsDevice);
@@ -95,22 +107,15 @@ public class Game1 : Game
                 behavior.RotationSpeed = new Vector3(0, 2f, 0);
             }
         }
-        
-        // Clear all pyramids with C key
-        if (_inputManager.IsKeyPressed(Keys.C))
-        {
-            _gameObjectManager.ClearAll();
-            CreateDemoPyramids(); // Recreate demo pyramids
-        }
-        
-        // Spawn random pyramid with R key
-        if (_inputManager.IsKeyPressed(Keys.R))
-        {
-            CreateRandomPyramidGameObject();
-        }
-        
+
         // Update all game objects
         _gameObjectManager.Update(gameTime);
+
+        // Update UI
+        _instructionsText.Text = $"WASD/Arrows: Move | Mouse: Look | Space/Q: Up/Down\n" +
+                                 $"Tab: Toggle Mouse Capture | R: Add Random | C: Clear All\n" +
+                                 $"Objects: {_gameObjectManager.GameObjects.Count} | Camera Pos: {_camera.Position:F1}";
+        _uiManager.Update(gameTime);
 
         base.Update(gameTime);
     }
@@ -135,16 +140,8 @@ public class Game1 : Game
         // End primitive rendering
         _primitiveRenderer.End();
 
-        // Draw UI overlay with instructions
-        _spriteBatch.Begin();
-        
-        string instructions = $"WASD/Arrows: Move | Mouse: Look | Space/Q: Up/Down\n" +
-                             $"Tab: Toggle Mouse Capture | R: Add Random | C: Clear All\n" +
-                             $"Objects: {_gameObjectManager.GameObjects.Count} | Camera Pos: {_camera.Position:F1}";
-        
-        _spriteBatch.DrawString(_instructionsFont, instructions, new Vector2(10, 10), Color.White);
-        
-        _spriteBatch.End();
+        // Draw UI overlay
+        _uiManager.Draw(_spriteBatch);
 
         base.Draw(gameTime);
     }
