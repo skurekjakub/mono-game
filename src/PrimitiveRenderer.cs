@@ -163,34 +163,7 @@ namespace game_mono
             _indexCount += 6;
             _primitiveCount += 2;
         }
-        
-        /// <summary>
-        /// Adds a triangle with specified vertices, normals, and color (for legacy 2D support)
-        /// </summary>
-        public void AddTriangle(Vector3 v1, Vector3 v2, Vector3 v3, Vector3 n1, Vector3 n2, Vector3 n3, Color color)
-        {
-            if (_vertexCount + 3 > MaxVertices || _indexCount + 3 > MaxIndices)
-            {
-                Flush();
-                Reset();
-            }
-            
-            // Add vertices
-            _vertices[_vertexCount] = new VertexPositionNormalColor(v1, n1, color);
-            _vertices[_vertexCount + 1] = new VertexPositionNormalColor(v2, n2, color);
-            _vertices[_vertexCount + 2] = new VertexPositionNormalColor(v3, n3, color);
-            
-            // Add indices
-            short baseIndex = (short)_vertexCount;
-            _indices[_indexCount] = baseIndex;
-            _indices[_indexCount + 1] = (short)(baseIndex + 1);
-            _indices[_indexCount + 2] = (short)(baseIndex + 2);
-            
-            _vertexCount += 3;
-            _indexCount += 3;
-            _primitiveCount += 1;
-        }
-        
+
         public void DrawMesh(Mesh mesh, Matrix worldMatrix, Color color)
         {
             // Flush any existing batched primitives before drawing a unique mesh.

@@ -9,6 +9,7 @@ public class Game1 : Game
 {
     private GraphicsDeviceManager _graphics;
     private SpriteBatch _spriteBatch;
+    private SpriteFont _instructionsFont;
     
     // Our 3D systems
     private PrimitiveRenderer _primitiveRenderer;
@@ -28,11 +29,11 @@ public class Game1 : Game
     {
         _graphics = new GraphicsDeviceManager(this);
         Content.RootDirectory = "Content";
-        
+
         // Set a reasonable window size
         _graphics.PreferredBackBufferWidth = 1024;
         _graphics.PreferredBackBufferHeight = 768;
-        
+
         _random = new Random();
     }
 
@@ -55,6 +56,7 @@ public class Game1 : Game
     protected override void LoadContent()
     {
         _spriteBatch = new SpriteBatch(GraphicsDevice);
+        _instructionsFont = Content.Load<SpriteFont>("InstructionsFont");
 
         // Initialize our 3D systems
         _primitiveRenderer = new PrimitiveRenderer(GraphicsDevice);
@@ -140,8 +142,7 @@ public class Game1 : Game
                              $"Tab: Toggle Mouse Capture | R: Add Random | C: Clear All\n" +
                              $"Objects: {_gameObjectManager.GameObjects.Count} | Camera Pos: {_camera.Position:F1}";
         
-        // In a real game, you would use a SpriteFont here.
-        // For simplicity, we are not rendering text for now.
+        _spriteBatch.DrawString(_instructionsFont, instructions, new Vector2(10, 10), Color.White);
         
         _spriteBatch.End();
 
